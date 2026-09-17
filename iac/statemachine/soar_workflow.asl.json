@@ -1,0 +1,89 @@
+{
+  "Comment": "AWS SOAR Engine - Automated Incident Response & Threat Remediation Workflow",
+  "StartAt": "ParseThreatFinding",
+  "States": {
+    "ParseThreatFinding": {
+      "Type": "Pass",
+      "Parameters": {
+        "FindingType.$": "$.detail.type",
+        "Severity.$": "$.detail.severity",
+        "TargetResourceId.$": "$.detail.resource.instanceDetails.instanceId",
+        "IAMUserName.$": "$.detail.resource.accessKeyDetails.userName",
+        "AttackerIP.$": "$.detail.service.action.networkConnectionAction.remoteIpDetails.ipAddressV4"
+      },
+      "ResultPath": "$.parsedFinding",
+      "Next": "EvaluateThreatType"
+    },
+    "EvaluateThreatType": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.parsedFinding.FindingType",
+          "StringMatches": "*IAMUser*",
+          "Next": "RevokeIAMUserSessions"
+        },
+        {
+          "Variable": "$.parsedFinding.FindingType",
+          "StringMatches": "*EC2*",
+          "Next": "IsolateEC2Instance"
+        },
+        {
+          "Variable": "$.parsedFinding.FindingType",
+          "StringMatches": "*UnauthorizedAccess*",
+          "Next": "BlockWAFIPAddress"
+        }
+      ],
+      "Default": "UnhandledThreatAlert"
+    },
+    "RevokeIAMUserSessions": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "soar-remediation-revoke-iam",
+        "Payload": {
+          "IAMUserName.$": "$.parsedFinding.IAMUserName"
+        }
+      },
+      "Next": "PublishRemediationNotice"
+    },
+    "IsolateEC2Instance": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "soar-remediation-isolate-ec2",
+        "Payload": {
+          "InstanceId.$": "$.parsedFinding.TargetResourceId"
+        }
+      },
+      "Next": "PublishRemediationNotice"
+    },
+    "BlockWAFIPAddress": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "soar-remediation-block-waf-ip",
+        "Payload": {
+          "AttackerIP.$": "$.parsedFinding.AttackerIP"
+        }
+      },
+      "Next": "PublishRemediationNotice"
+    },
+    "UnhandledThreatAlert": {
+      "Type": "Pass",
+      "Result": "Threat type not configured for auto-remediation. Flagged for human review.",
+      "Next": "PublishRemediationNotice"
+    },
+    "PublishRemediationNotice": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:SOAR-Alert-Topic",
+        "Message": {
+          "Title": "SOAR Incident Response Executed",
+          "Details.$": "$"
+        }
+      },
+      "End": true
+    }
+  }
+}

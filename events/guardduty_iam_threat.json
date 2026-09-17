@@ -1,0 +1,30 @@
+{
+  "version": "0",
+  "id": "gd-test-event-001",
+  "detail-type": "GuardDuty Finding",
+  "source": "aws.guardduty",
+  "account": "123456789012",
+  "time": "2026-09-17T22:50:00Z",
+  "region": "us-east-1",
+  "detail": {
+    "schemaVersion": "2.0",
+    "type": "UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.OutsideAWS",
+    "severity": 8.0,
+    "resource": {
+      "resourceType": "AccessKey",
+      "accessKeyDetails": {
+        "userName": "compromised-dev-user",
+        "userType": "IAMUser"
+      }
+    },
+    "service": {
+      "action": {
+        "networkConnectionAction": {
+          "remoteIpDetails": {
+            "ipAddressV4": "198.51.100.45"
+          }
+        }
+      }
+    }
+  }
+}
