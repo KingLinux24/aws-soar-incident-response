@@ -1,6 +1,7 @@
 # Cloud-Native Automated Incident Response (SOAR Engine)
 
-[![AWS](https://img.shields.io/badge/AWS-Step Functions-orange?style=for-the-badge&logo=amazon-aws)](https://aws.amazon.com/step-functions/)
+<img width="855" height="280" alt="AdobeExpressPhotos_d1c6dbe421ca412eb0f4c09688d3a0fd_CopyEdited" src="https://github.com/user-attachments/assets/ff7c52e7-204f-47a5-a55c-1331c6045d9f" />
+
 [![Python](https://img.shields.io/badge/Python-3.8+-blue?style=for-the-badge&logo=python)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
